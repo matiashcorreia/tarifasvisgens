@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/super_admin", "destination": "/super_admin.html" },
+    { "source": "/:slug", "destination": "/grupo.html" }
+  ]
+}

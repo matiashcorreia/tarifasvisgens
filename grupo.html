@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Corridas & Viagens</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#7C3AED;--primary-dark:#5B21B6;--primary-light:#F5F3FF;--primary-mid:#DDD6FE;
+  --secondary:#10B981;--secondary-dark:#059669;--secondary-light:#ECFDF5;--secondary-mid:#D1FAE5;
+  --text:#111827;--text2:#374151;--text3:#6B7280;--text4:#9CA3AF;
+  --border:#E5E7EB;--border2:#F3F4F6;--bg:#F8F7FF;--white:#fff;
+  --red:#EF4444;--red-light:#FEF2F2;--amber:#F59E0B;--amber-light:#FFFBEB;
+  --r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--r999:999px;
+  --sh1:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
+  --sh3:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px rgba(0,0,0,.03);
+  --sh-primary:0 4px 14px rgba(124,58,237,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* LOADING INICIAL */
+#loading-inicial{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
+.spinner-grande{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-texto{font-size:14px;font-weight:600;color:var(--text3)}
+
+/* ERRO */
+#erro-page{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:32px;text-align:center}
+#erro-page .ico{font-size:48px}
+#erro-page h2{font-size:20px;font-weight:700;color:var(--text)}
+#erro-page p{font-size:14px;color:var(--text3)}
+
+/* HEADER */
+.header{padding:28px 20px 40px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+.header::after{content:'';position:absolute;bottom:-30px;left:-20px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)}
+.header-inner{position:relative;z-index:1}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.header-logo-wrap{display:flex;align-items:center;gap:12px}
+.header-logo-icon{width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:var(--r16);display:flex;align-items:center;justify-content:center;font-size:26px;border:1.5px solid rgba(255,255,255,.25);flex-shrink:0}
+.header-logo-text h1{font-size:18px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.3px}
+.header-logo-text p{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px}
+.header-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:var(--r999);padding:6px 14px;font-size:12px;color:#fff;font-weight:500;border:1px solid rgba(255,255,255,.2);margin-top:4px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px;margin-top:-20px;position:relative;z-index:2}
+.stat{background:var(--white);border-radius:var(--r16);padding:14px 10px 12px;text-align:center;box-shadow:var(--sh3);border:1px solid var(--border2);transition:transform .2s}
+.stat:hover{transform:translateY(-2px)}
+.stat-icon{width:38px;height:38px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:18px}
+.stat-n{font-size:20px;font-weight:800;line-height:1;letter-spacing:-.5px}
+.stat-l{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4;font-weight:500}
+
+/* TABS */
+.tabs{display:flex;gap:8px;padding:18px 16px 0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:9px 20px;border-radius:var(--r999);font-size:13px;font-weight:600;cursor:pointer;border:none;display:flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
+.tab.active{color:#fff;box-shadow:var(--sh-primary);transform:translateY(-1px)}
+.tab:not(.active){background:var(--white);color:var(--text3);border:1.5px solid var(--border)}
+.panel{display:none;padding:16px 16px 0}.panel.active{display:block}
+
+/* RECENTES / FAVORITOS */
+.section-mini-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.section-mini-title button{font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0;font-family:inherit}
+.recent-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.recent-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r999);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;font-weight:500;box-shadow:var(--sh1)}
+.recent-chip:hover{border-color:var(--primary);color:var(--primary-dark);background:var(--primary-light)}
+.recent-chip-del{margin-left:2px;color:var(--text4);font-size:15px;line-height:1;background:none;border:none;cursor:pointer;padding:0;transition:color .15s;font-family:inherit}
+.recent-chip-del:hover{color:var(--red)}
+.fav-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fav-scroll::-webkit-scrollbar{display:none}
+.fav-card{flex-shrink:0;min-width:156px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r20);padding:14px 16px;cursor:pointer;transition:all .2s;position:relative;box-shadow:var(--sh1)}
+.fav-card:hover{box-shadow:var(--sh-primary);transform:translateY(-2px)}
+.fav-star-btn{position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;font-size:16px;padding:2px;line-height:1;transition:transform .15s;font-family:inherit}
+.fav-star-btn:hover{transform:scale(1.2)}
+.fav-route{font-size:11px;color:var(--text3);margin-bottom:4px;padding-right:22px;font-weight:500}
+.fav-price{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.fav-type{font-size:10px;color:var(--text4);margin-top:4px;font-weight:500}
+
+/* SEARCH CARD */
+.search-card{background:var(--white);border-radius:var(--r24);padding:20px;box-shadow:var(--sh2);border:1px solid var(--border2);margin-bottom:16px}
+.search-card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.input-group{margin-bottom:4px}
+.input-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-primary{background:var(--primary)}
+.dot-red{background:var(--red)}
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-wrap input{width:100%;padding:13px 44px 13px 16px;font-size:15px;font-family:inherit;font-weight:500;border:2px solid var(--border);border-radius:var(--r16);background:var(--bg);color:var(--text);outline:none;transition:all .2s}
+.input-wrap input::placeholder{color:var(--text4);font-weight:400}
+.input-wrap input:focus{background:var(--white);box-shadow:0 0 0 4px rgba(124,58,237,.1)}
+.input-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--border);border:none;color:var(--text3);cursor:pointer;font-size:13px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
+.input-clear:hover{background:var(--text4);color:#fff}
+.swap-row{display:flex;justify-content:center;margin:8px 0;position:relative;z-index:1}
+.swap-btn{background:var(--white);border:2px solid var(--border);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;box-shadow:var(--sh2);transition:all .25s;font-family:inherit}
+.swap-btn:active{transform:rotate(180deg)}
+.btn-buscar{width:100%;padding:16px;color:#fff;border:none;border-radius:var(--r16);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-top:14px;letter-spacing:.1px}
+.btn-buscar:hover{transform:translateY(-1px)}
+.btn-buscar:active{transform:scale(.98)}
+
+/* DICA */
+.search-hint{background:var(--white);border-radius:var(--r20);border:1.5px solid var(--primary-mid);padding:16px 18px;margin-bottom:16px;box-shadow:var(--sh1)}
+.search-hint.hidden{display:none}
+.hint-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--text3);line-height:1.5}
+.hint-item:last-child{border-bottom:none;padding-bottom:0}
+.hint-item:first-child{padding-top:0}
+.hint-item strong{color:var(--text2);font-weight:600}
+.hint-icon{font-size:16px;flex-shrink:0;width:28px;height:28px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center}
+
+/* RESULTADOS */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.results-count{font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.dot-count{width:7px;height:7px;border-radius:50%;background:var(--primary);display:inline-block}
+.result-card{background:var(--white);border-radius:var(--r20);padding:16px 18px;margin-bottom:12px;border:1.5px solid var(--border2);box-shadow:var(--sh1);transition:all .2s}
+.result-card:hover{box-shadow:var(--sh2);border-color:var(--primary-mid);transform:translateY(-1px)}
+.route-row{display:flex;align-items:flex-start;gap:12px}
+.route-pins{display:flex;flex-direction:column;align-items:center;padding-top:4px;flex-shrink:0}
+.pin{font-size:14px;line-height:1}
+.route-line{width:2px;height:20px;background:var(--primary-mid);margin:2px 0;border-radius:1px}
+.route-text{flex:1}
+.route-from{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-.1px}
+.route-to{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.1px}
+.route-price-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border2)}
+.route-meta{display:flex;align-items:center;gap:8px}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:var(--r999);font-size:11px;font-weight:600;letter-spacing:.2px}
+.badge-bairro{background:var(--primary-light);color:var(--primary-dark)}
+.badge-viagem{background:var(--secondary-mid);color:var(--secondary-dark)}
+.route-obs{font-size:11px;color:#D97706;margin-top:8px;font-weight:600;background:var(--amber-light);padding:5px 10px;border-radius:var(--r8);border-left:3px solid var(--amber)}
+.route-price{font-size:22px;font-weight:800;color:var(--secondary-dark);letter-spacing:-.5px}
+.btn-wpp{background:#22C55E;color:#fff;border:none;border-radius:var(--r999);padding:8px 16px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:all .2s}
+.btn-wpp:hover{background:#16A34A;transform:translateY(-1px)}
+.result-actions{display:flex;align-items:center;gap:8px}
+.btn-fav{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;line-height:1;flex-shrink:0;transition:transform .2s;font-family:inherit}
+.btn-fav:hover{transform:scale(1.2)}
+.no-result{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.no-result-icon{font-size:44px;margin-bottom:12px;display:block}
+
+/* FILTROS */
+.filter-row{display:flex;gap:8px;margin-bottom:14px}
+.filter-row input,.filter-row select{flex:1;padding:11px 14px;font-size:14px;font-family:inherit;border:2px solid var(--border);border-radius:var(--r16);background:var(--white);color:var(--text);outline:none;-webkit-appearance:none;font-weight:500;transition:all .2s}
+.filter-row input::placeholder{color:var(--text4);font-weight:400}
+.filter-row input:focus,.filter-row select:focus{box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.section-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border2)}
+
+/* BAIRRO CARD */
+.bairro-card{background:var(--white);border-radius:var(--r16);padding:14px 16px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:var(--sh1);transition:all .2s;margin-bottom:8px}
+.bairro-card:hover{box-shadow:var(--sh2);transform:translateX(2px)}
+.bairro-from{font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px;color:var(--text)}
+.bairro-to{color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500}
+.bairro-right{text-align:right;flex-shrink:0}
+.bairro-price{font-size:17px;font-weight:800;color:var(--secondary-dark);letter-spacing:-.3px}
+.bairro-obs{font-size:10px;color:#D97706;margin-top:3px;max-width:140px;text-align:right;font-weight:500}
+
+/* VIAGEM CARD */
+.viagem-card{background:var(--white);border-radius:var(--r16);padding:14px 16px;border:1.5px solid var(--border2);display:flex;align-items:center;gap:14px;box-shadow:var(--sh1);margin-bottom:8px;transition:all .2s}
+.viagem-card:hover{box-shadow:var(--sh2);transform:translateX(2px)}
+.viagem-icon{width:42px;height:42px;border-radius:var(--r12);background:var(--secondary-mid);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.viagem-info{flex:1}
+.viagem-dest{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.1px}
+.viagem-sub{font-size:11px;color:var(--text4);margin-top:2px;font-weight:500}
+.viagem-obs{font-size:11px;color:#D97706;margin-top:3px;font-weight:600}
+.viagem-price{font-size:18px;font-weight:800;color:var(--secondary-dark);flex-shrink:0;letter-spacing:-.3px}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,.92);border-top:1px solid var(--border2);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(12px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;cursor:pointer;gap:3px;border:none;background:none;transition:all .2s;position:relative;font-family:inherit}
+.nav-item::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:3px;border-radius:0 0 3px 3px;transition:width .2s}
+.nav-item.active::after{width:28px}
+.nav-icon{font-size:22px;color:var(--text4);line-height:1;transition:all .2s}
+.nav-label{font-size:10px;font-weight:600;color:var(--text4);transition:all .2s;letter-spacing:.2px}
+.nav-item.active .nav-icon,.nav-item.active .nav-label{transform:translateY(-1px)}
+.pb{padding-bottom:88px}
+
+/* TOAST */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(16px);background:#111827;color:#fff;padding:12px 24px;border-radius:var(--r999);font-size:13px;font-weight:600;z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--primary)}
+.toast.error{background:var(--red)}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty-state .ico{font-size:44px;margin-bottom:12px;display:block}
+</style>
+</head>
+<body>
+
+<!-- LOADING INICIAL -->
+<div id="loading-inicial">
+  <div class="spinner-grande"></div>
+  <div class="loading-texto">Carregando tarifas...</div>
+</div>
+
+<!-- ERRO (grupo não encontrado) -->
+<div id="erro-page" style="display:none;flex-direction:column">
+  <div class="ico">😕</div>
+  <h2>Grupo não encontrado</h2>
+  <p>Verifique o link e tente novamente.</p>
+</div>
+
+<!-- HEADER (preenchido dinamicamente) -->
+<div class="header" id="main-header" style="display:none">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-logo-wrap">
+        <div class="header-logo-icon" id="h-emoji">🚗</div>
+        <div class="header-logo-text">
+          <h1 id="h-nome">Corridas & Viagens</h1>
+          <p>Encontre tarifas rapidamente</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-badge">📍 Tabela oficial dos grupos de motoristas</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-publico" style="display:none">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-icon" id="stat-icon-b">📍</div>
+      <div class="stat-n" id="cnt-bairro">0</div>
+      <div class="stat-l">Bairros<br>cadastrados</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon" id="stat-icon-v">🚗</div>
+      <div class="stat-n" id="cnt-viagem">0</div>
+      <div class="stat-l">Viagens<br>disponíveis</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon" id="stat-icon-t">📋</div>
+      <div class="stat-n" id="cnt-total">0</div>
+      <div class="stat-l">Tarifas<br>registradas</div>
+    </div>
+  </div>
+
+  <div class="tabs" style="margin-top:18px">
+    <button class="tab active" onclick="switchTab('busca')" id="tab-busca">🔍 Buscar</button>
+    <button class="tab" onclick="switchTab('bairros')" id="tab-bairros">📍 Bairros</button>
+    <button class="tab" onclick="switchTab('viagens')" id="tab-viagens">🛣️ Viagens</button>
+  </div>
+
+  <!-- BUSCA -->
+  <div class="panel active pb" id="panel-busca">
+    <div id="bloco-favoritos" style="display:none">
+      <div class="section-mini-title">⭐ Favoritos</div>
+      <div class="fav-scroll" id="fav-list"></div>
+    </div>
+    <div id="bloco-recentes" style="display:none">
+      <div class="section-mini-title">🕐 Buscas recentes <button onclick="limparRecentes()">Limpar tudo</button></div>
+      <div class="recent-chips" id="recentes-list"></div>
+    </div>
+    <div class="search-card">
+      <div class="search-card-title"><span>🗺️</span> Encontre sua tarifa</div>
+      <div class="input-group">
+        <div class="input-label"><span class="dot dot-primary"></span> De onde?</div>
+        <div class="input-wrap">
+          <input id="s-origem" type="text" placeholder="Digite a origem..." oninput="buscar()" list="dl-lugares" autocomplete="off">
+          <button class="input-clear" onclick="limparCampo('s-origem')" style="display:none" id="clear-origem">×</button>
+        </div>
+      </div>
+      <div class="swap-row"><button class="swap-btn" onclick="swapCampos()">⇅</button></div>
+      <div class="input-group" style="margin-top:4px">
+        <div class="input-label"><span class="dot dot-red"></span> Para onde?</div>
+        <div class="input-wrap">
+          <input id="s-destino" type="text" placeholder="Digite o destino..." oninput="buscar()" list="dl-lugares" autocomplete="off">
+          <button class="input-clear" onclick="limparCampo('s-destino')" style="display:none" id="clear-destino">×</button>
+        </div>
+      </div>
+      <button class="btn-buscar" id="btn-buscar" onclick="buscar()">🔍 Buscar tarifas</button>
+    </div>
+    <div class="search-hint" id="search-hint">
+      <div class="hint-item"><span class="hint-icon">📍</span><span>Digite só a <strong>origem</strong> ou só o <strong>destino</strong> — a busca funciona nos dois sentidos</span></div>
+      <div class="hint-item"><span class="hint-icon">⇅</span><span>Use o botão central para <strong>inverter</strong> origem e destino</span></div>
+      <div class="hint-item"><span class="hint-icon">📲</span><span>Toque em <strong>Compartilhar</strong> para enviar a tarifa no WhatsApp</span></div>
+      <div class="hint-item"><span class="hint-icon">⭐</span><span>Salve suas rotas favoritas tocando na <strong>estrela</strong></span></div>
+    </div>
+    <div id="resultado"></div>
+  </div>
+
+  <!-- BAIRROS -->
+  <div class="panel pb" id="panel-bairros">
+    <div class="filter-row">
+      <input id="f-bairro" type="text" placeholder="🔍 Filtrar bairro..." oninput="renderBairros()" autocomplete="off">
+      <select id="f-origem-sel" onchange="renderBairros()"><option value="">Todas origens</option></select>
+    </div>
+    <div class="section-title" id="bairro-count-label">Todas as rotas</div>
+    <div id="bairro-list"></div>
+    <div id="bairro-empty" class="empty-state" style="display:none"><div class="ico">😕</div>Nenhuma rota encontrada</div>
+  </div>
+
+  <!-- VIAGENS -->
+  <div class="panel pb" id="panel-viagens">
+    <div class="filter-row">
+      <input id="f-viagem" type="text" placeholder="🔍 Filtrar destino..." oninput="renderViagens()" autocomplete="off">
+      <select id="f-ordem" onchange="renderViagens()">
+        <option value="az">A → Z</option>
+        <option value="preco-asc">Menor preço</option>
+        <option value="preco-desc">Maior preço</option>
+      </select>
+    </div>
+    <div class="section-title">Saindo de Escada</div>
+    <div id="viagem-list"></div>
+    <div id="viagem-empty" class="empty-state" style="display:none"><div class="ico">😕</div>Nenhuma viagem encontrada</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-item active" onclick="switchTab('busca')" id="nav-busca">
+    <span class="nav-icon">🔍</span><span class="nav-label">Buscar</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('bairros')" id="nav-bairros">
+    <span class="nav-icon">📍</span><span class="nav-label">Bairros</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('viagens')" id="nav-viagens">
+    <span class="nav-icon">🛣️</span><span class="nav-label">Viagens</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<datalist id="dl-lugares"></datalist>
+
+<script>
+const SUPABASE_URL = 'https://erfnxnjruqsqgkkfyiba.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZm54bmpydXFzcWdra2Z5aWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ5ODcsImV4cCI6MjA5NzMxMDk4N30.zT0ePGOmkwIVwSEGCbwCkxMKYww42mX0g6n0fGZOwAo';
+const H = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+let _grupo = null;
+let _bairros = [];
+let _viagens = [];
+
+// ── PEGAR SLUG DA URL ──
+function getSlug() {
+  // Suporta: /escadaviagens ou /escadaviagens/ ou ?slug=escadaviagens
+  const path = window.location.pathname.replace(/\//g,'').trim();
+  if(path) return path;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('slug') || '';
+}
+
+// ── APLICAR TEMA DO GRUPO ──
+function aplicarTema(grupo) {
+  const p = grupo.cor_primaria   || '#7C3AED';
+  const s = grupo.cor_secundaria || '#10B981';
+
+  // Atualizar CSS vars
+  document.documentElement.style.setProperty('--primary',       p);
+  document.documentElement.style.setProperty('--primary-dark',  ajustarBrilho(p, -20));
+  document.documentElement.style.setProperty('--primary-light', hexToRgba(p, .08));
+  document.documentElement.style.setProperty('--primary-mid',   hexToRgba(p, .2));
+  document.documentElement.style.setProperty('--secondary',       s);
+  document.documentElement.style.setProperty('--secondary-dark',  ajustarBrilho(s, -20));
+  document.documentElement.style.setProperty('--secondary-light', hexToRgba(s, .08));
+  document.documentElement.style.setProperty('--secondary-mid',   hexToRgba(s, .2));
+  document.documentElement.style.setProperty('--sh-primary', `0 4px 14px ${hexToRgba(p,.28)}`);
+  document.documentElement.style.setProperty('--bg', hexToRgba(p,.04));
+
+  // Header
+  document.getElementById('main-header').style.background =
+    `linear-gradient(135deg, ${ajustarBrilho(p,-30)}, ${p}, ${ajustarBrilho(p,20)})`;
+
+  // Tabs e nav
+  document.querySelector('.tab.active').style.background = p;
+
+  // Stat icons
+  document.getElementById('stat-icon-b').parentElement.querySelector('.stat-icon').style.background = hexToRgba(p,.1);
+  document.getElementById('stat-icon-v').parentElement.querySelector('.stat-icon').style.background = hexToRgba(s,.1);
+  document.getElementById('stat-icon-t').parentElement.querySelector('.stat-icon').style.background = hexToRgba(p,.08);
+
+  // Stat numbers
+  document.getElementById('cnt-bairro').style.color = p;
+  document.getElementById('cnt-viagem').style.color = s;
+  document.getElementById('cnt-total').style.color  = p;
+
+  // Botão buscar
+  document.getElementById('btn-buscar').style.background =
+    `linear-gradient(135deg, ${ajustarBrilho(p,-20)}, ${p})`;
+  document.getElementById('btn-buscar').style.boxShadow =
+    `0 4px 14px ${hexToRgba(p,.35)}`;
+
+  // Nav after color
+  const style = document.createElement('style');
+  style.textContent = `
+    .nav-item::after { background: ${p} !important; }
+    .nav-item.active .nav-icon, .nav-item.active .nav-label { color: ${p} !important; }
+    .tab.active { background: ${p} !important; }
+    .tab:not(.active):hover { border-color: ${p} !important; color: ${p} !important; background: ${hexToRgba(p,.06)} !important; }
+    .input-wrap input:focus { border-color: ${p} !important; box-shadow: 0 0 0 4px ${hexToRgba(p,.1)} !important; }
+    .filter-row input:focus, .filter-row select:focus { border-color: ${p} !important; box-shadow: 0 0 0 3px ${hexToRgba(p,.1)} !important; }
+    .recent-chip:hover { border-color: ${p} !important; color: ${ajustarBrilho(p,-20)} !important; background: ${hexToRgba(p,.06)} !important; }
+    .fav-card:hover { border-color: ${p} !important; box-shadow: 0 4px 14px ${hexToRgba(p,.2)} !important; }
+    .dot-primary { background: ${p} !important; }
+    .dot-count { background: ${p} !important; }
+    .badge-bairro { background: ${hexToRgba(p,.1)} !important; color: ${ajustarBrilho(p,-20)} !important; }
+    .route-line { background: ${hexToRgba(p,.3)} !important; }
+    .result-card:hover { border-color: ${hexToRgba(p,.3)} !important; }
+    .search-hint { border-color: ${hexToRgba(p,.3)} !important; }
+    .hint-icon { background: ${hexToRgba(p,.08)} !important; }
+    .section-mini-title button { color: ${p} !important; }
+    .swap-btn:hover { border-color: ${p} !important; color: ${p} !important; }
+    .bairro-price, .viagem-price, .route-price, .fav-price { color: ${s} !important; }
+    .badge-viagem { background: ${hexToRgba(s,.15)} !important; color: ${ajustarBrilho(s,-20)} !important; }
+    .viagem-icon { background: ${hexToRgba(s,.15)} !important; }
+    .toast.success { background: ${p} !important; }
+  `;
+  document.head.appendChild(style);
+
+  // Header info
+  document.getElementById('h-emoji').textContent = grupo.logo_emoji || '🚗';
+  document.getElementById('h-nome').textContent  = grupo.nome;
+  document.title = grupo.nome + ' — Corridas & Viagens';
+}
+
+// ── HELPERS DE COR ──
+function hexToRgba(hex, alpha) {
+  hex = hex.replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function ajustarBrilho(hex, amount) {
+  hex = hex.replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  let r=parseInt(hex.slice(0,2),16)+amount;
+  let g=parseInt(hex.slice(2,4),16)+amount;
+  let b=parseInt(hex.slice(4,6),16)+amount;
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ── INIT ──
+async function init() {
+  const slug = getSlug();
+  if(!slug) { mostrarErro(); return; }
+
+  try {
+    // Buscar grupo pelo slug
+    const rg = await fetch(
+      `${SUPABASE_URL}/rest/v1/grupos?slug=eq.${encodeURIComponent(slug)}&select=*&limit=1`,
+      { headers: H }
+    );
+    const grupos = await rg.json();
+    if(!grupos.length || !grupos[0].ativo) { mostrarErro(); return; }
+    _grupo = grupos[0];
+
+    // Aplicar tema
+    aplicarTema(_grupo);
+
+    // Buscar dados
+    const [rb, rv] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/bairros?grupo_id=eq.${_grupo.id}&select=*&order=origem.asc,destino.asc`, { headers: H }),
+      fetch(`${SUPABASE_URL}/rest/v1/viagens?grupo_id=eq.${_grupo.id}&select=*&order=destino.asc`, { headers: H })
+    ]);
+    _bairros = await rb.json();
+    _viagens = await rv.json();
+
+    // Atualizar UI
+    atualizarStats();
+    popularSelects();
+    renderFavoritos();
+    renderRecentes();
+
+    // Mostrar app
+    document.getElementById('loading-inicial').style.display = 'none';
+    document.getElementById('main-header').style.display = 'block';
+    document.getElementById('app-publico').style.display  = 'block';
+    document.getElementById('bottom-nav').style.display   = 'flex';
+
+  } catch(e) {
+    console.error(e);
+    mostrarErro();
+  }
+}
+
+function mostrarErro() {
+  document.getElementById('loading-inicial').style.display = 'none';
+  document.getElementById('erro-page').style.display = 'flex';
+}
+
+// ── UTILS ──
+const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const fmt  = v => 'R$ ' + Number(v).toFixed(2).replace('.',',');
+function toast(msg, tipo='success') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+tipo+' show';
+  setTimeout(()=>t.className='toast',2500);
+}
+function wppLink(origem, destino, preco, obs) {
+  let txt=`🚗 *${_grupo?.nome||'Corrida'}*\n📍 *${origem}* → *${destino}*\n💰 *${preco}*`;
+  if(obs) txt+=`\n⚠️ ${obs}`;
+  txt+='\n\n_Tabela oficial dos grupos de motoristas_';
+  return 'https://wa.me/?text='+encodeURIComponent(txt);
+}
+
+// ── STATS ──
+function atualizarStats() {
+  document.getElementById('cnt-bairro').textContent = _bairros.length;
+  document.getElementById('cnt-viagem').textContent = _viagens.length;
+  document.getElementById('cnt-total').textContent  = _bairros.length + _viagens.length;
+}
+
+// ── DATALIST ──
+function popularSelects() {
+  const dl = document.getElementById('dl-lugares');
+  const s  = new Set();
+  _bairros.forEach(r => { s.add(r.origem); s.add(r.destino); });
+  _viagens.forEach(r => s.add(r.destino));
+  s.add('Escada');
+  dl.innerHTML = [...s].sort((a,b)=>a.localeCompare(b,'pt')).map(l=>`<option value="${l}">`).join('');
+  const origens = [...new Set(_bairros.map(r=>r.origem))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const sel = document.getElementById('f-origem-sel');
+  sel.innerHTML = '<option value="">Todas origens</option>';
+  origens.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
+}
+
+// ── TABS ──
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('panel-'+t).classList.add('active');
+  document.getElementById('nav-'+t).classList.add('active');
+  // Reaplicar cor da tab ativa
+  if(_grupo) document.getElementById('tab-'+t).style.background = _grupo.cor_primaria;
+  if(t==='bairros') renderBairros();
+  if(t==='viagens') renderViagens();
+}
+
+// ── CAMPOS ──
+function limparCampo(id) {
+  document.getElementById(id).value='';
+  document.getElementById('clear-'+id.replace('s-','')).style.display='none';
+  buscar();
+}
+function swapCampos() {
+  const o=document.getElementById('s-origem'),d=document.getElementById('s-destino');
+  [o.value,d.value]=[d.value,o.value]; buscar();
+}
+['origem','destino'].forEach(id=>{
+  document.getElementById('s-'+id).addEventListener('input',function(){
+    document.getElementById('clear-'+id).style.display=this.value?'block':'none';
+  });
+});
+
+// ── BUSCA ──
+function buscar() {
+  const o=norm(document.getElementById('s-origem').value.trim());
+  const d=norm(document.getElementById('s-destino').value.trim());
+  const el=document.getElementById('resultado');
+  const hint=document.getElementById('search-hint');
+  if(!o&&!d){el.innerHTML='';if(hint)hint.classList.remove('hidden');return;}
+  if(hint)hint.classList.add('hidden');
+  let found=[];
+  _bairros.forEach(r=>{
+    const ro=norm(r.origem),rd=norm(r.destino);
+    if((!o||(ro.includes(o)||rd.includes(o)))&&(!d||(rd.includes(d)||ro.includes(d))))
+      found.push({o:r.origem,d:r.destino,v:r.valor,obs:r.obs||'',tipo:'bairro'});
+  });
+  if(!o||norm('escada').includes(o)){
+    _viagens.forEach(r=>{
+      const rd=norm(r.destino);
+      const matchD=!d?(!o||rd.includes(o)):rd.includes(d);
+      if(matchD) found.push({o:'Escada',d:r.destino,v:r.valor,obs:r.obs||'',tipo:'viagem'});
+    });
+  }
+  if(!found.length){
+    el.innerHTML='<div class="no-result"><span class="no-result-icon">😕</span><div style="font-weight:600;margin-bottom:4px">Nenhuma rota encontrada</div><div style="font-size:13px">Tente palavras diferentes</div></div>';
+    return;
+  }
+  el.innerHTML=`<div class="results-header"><div class="results-count"><span class="dot-count"></span>${found.length} tarifa${found.length>1?'s':''} encontrada${found.length>1?'s':''}</div></div>`+
+  found.map(r=>`
+    <div class="result-card">
+      <div class="route-row">
+        <div class="route-pins"><span class="pin">🟢</span><div class="route-line"></div><span class="pin">🔴</span></div>
+        <div class="route-text"><div class="route-from">${r.o}</div><div class="route-to">${r.d}</div></div>
+      </div>
+      ${r.obs?`<div class="route-obs">⚠️ ${r.obs}</div>`:''}
+      <div class="route-price-row">
+        <div class="route-meta">
+          <span class="badge ${r.tipo==='viagem'?'badge-viagem':'badge-bairro'}">${r.tipo==='viagem'?'Viagem':'Bairro'}</span>
+          <div class="route-price">${fmt(r.v)}</div>
+        </div>
+        <div class="result-actions">
+          <button class="btn-fav" onclick="toggleFav('${r.o}','${r.d}',${r.v},'${r.obs}','${r.tipo}')">${isFav(r.o,r.d)?'⭐':'☆'}</button>
+          <a href="${wppLink(r.o,r.d,fmt(r.v),r.obs)}" target="_blank" class="btn-wpp"><span>📲</span> Compartilhar</a>
+        </div>
+      </div>
+    </div>`).join('');
+  salvarRecente(document.getElementById('s-origem').value.trim(),document.getElementById('s-destino').value.trim());
+}
+
+// ── BAIRROS ──
+function renderBairros() {
+  const f=norm(document.getElementById('f-bairro').value||'');
+  const sel=document.getElementById('f-origem-sel').value;
+  let lista=_bairros.filter(r=>(!f||(norm(r.origem).includes(f)||norm(r.destino).includes(f)))&&(!sel||r.origem===sel));
+  const el=document.getElementById('bairro-list'),empty=document.getElementById('bairro-empty'),lbl=document.getElementById('bairro-count-label');
+  lbl.textContent=lista.length+' rota'+(lista.length!==1?'s':'')+' encontrada'+(lista.length!==1?'s':'');
+  if(!lista.length){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  el.innerHTML=lista.map(r=>`
+    <div class="bairro-card">
+      <div>
+        <div class="bairro-from">🟢 ${r.origem}</div>
+        <div class="bairro-to">↳ 🔴 ${r.destino}</div>
+        ${r.obs?`<div class="bairro-obs">⚠️ ${r.obs}</div>`:''}
+      </div>
+      <div class="bairro-right">
+        <div class="bairro-price">${fmt(r.valor)}</div>
+        <a href="${wppLink(r.origem,r.destino,fmt(r.valor),r.obs)}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:11px;font-weight:600;color:#25D366;text-decoration:none">📲 Enviar</a>
+      </div>
+    </div>`).join('');
+}
+
+// ── VIAGENS ──
+function renderViagens() {
+  const f=norm(document.getElementById('f-viagem').value||'');
+  const ord=document.getElementById('f-ordem').value;
+  let lista=_viagens.filter(r=>!f||norm(r.destino).includes(f));
+  if(ord==='preco-asc') lista.sort((a,b)=>a.valor-b.valor);
+  else if(ord==='preco-desc') lista.sort((a,b)=>b.valor-a.valor);
+  else lista.sort((a,b)=>a.destino.localeCompare(b.destino,'pt'));
+  const el=document.getElementById('viagem-list'),empty=document.getElementById('viagem-empty');
+  if(!lista.length){el.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  el.innerHTML=lista.map(r=>`
+    <div class="viagem-card">
+      <div class="viagem-icon">🛣️</div>
+      <div class="viagem-info">
+        <div class="viagem-dest">${r.destino}</div>
+        <div class="viagem-sub">Saindo de Escada</div>
+        ${r.obs?`<div class="viagem-obs">⚠️ ${r.obs}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="viagem-price">${fmt(r.valor)}</div>
+        <a href="${wppLink('Escada',r.destino,fmt(r.valor),r.obs)}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#25D366;text-decoration:none;white-space:nowrap">📲 Enviar</a>
+      </div>
+    </div>`).join('');
+}
+
+// ── FAVORITOS (localStorage por grupo) ──
+const KF = () => `ce_fav_${_grupo?.slug||'default'}`;
+const KR = () => `ce_rec_${_grupo?.slug||'default'}`;
+const getFavs = () => { try{return JSON.parse(localStorage.getItem(KF())||'[]')}catch{return[]} };
+const saveFavs = d => localStorage.setItem(KF(), JSON.stringify(d));
+const getRecentes = () => { try{return JSON.parse(localStorage.getItem(KR())||'[]')}catch{return[]} };
+const saveRecentes = d => localStorage.setItem(KR(), JSON.stringify(d));
+const isFav = (o,d) => getFavs().some(f=>f.key===o+'||'+d);
+
+function toggleFav(o,d,v,obs,tipo) {
+  let favs=getFavs(); const key=o+'||'+d; const idx=favs.findIndex(f=>f.key===key);
+  if(idx>=0){favs.splice(idx,1);toast('Removido dos favoritos');}
+  else{favs.unshift({key,o,d,v,obs,tipo});if(favs.length>10)favs=favs.slice(0,10);toast('⭐ Favorito salvo!');}
+  saveFavs(favs); buscar(); renderFavoritos();
+}
+function renderFavoritos() {
+  const favs=getFavs(),bloco=document.getElementById('bloco-favoritos'),el=document.getElementById('fav-list');
+  if(!favs.length){bloco.style.display='none';return;}
+  bloco.style.display='block';
+  el.innerHTML=favs.map(f=>`
+    <div class="fav-card" onclick="preencherBusca('${f.o}','${f.d}')">
+      <button class="fav-star-btn" onclick="event.stopPropagation();toggleFav('${f.o}','${f.d}',${f.v},'${f.obs||''}','${f.tipo||'bairro'}')">⭐</button>
+      <div class="fav-route">${f.o} → ${f.d}</div>
+      <div class="fav-price">${fmt(f.v)}</div>
+      <div class="fav-type">${f.tipo==='viagem'?'Viagem longa':'Bairro'}</div>
+    </div>`).join('');
+}
+
+// ── RECENTES ──
+function salvarRecente(o,d) {
+  if(!o&&!d) return;
+  const label=(o&&d)?o+' → '+d:o||d;
+  let rec=getRecentes(); rec=rec.filter(r=>r.label!==label);
+  rec.unshift({label,o,d}); if(rec.length>6)rec=rec.slice(0,6);
+  saveRecentes(rec); renderRecentes();
+}
+function renderRecentes() {
+  const rec=getRecentes(),bloco=document.getElementById('bloco-recentes'),el=document.getElementById('recentes-list');
+  if(!rec.length){bloco.style.display='none';return;}
+  bloco.style.display='block';
+  el.innerHTML=rec.map((r,i)=>`
+    <div class="recent-chip" onclick="preencherBusca('${r.o||''}','${r.d||''}')">
+      🕐 ${r.label}
+      <button class="recent-chip-del" onclick="event.stopPropagation();removerRecente(${i})">×</button>
+    </div>`).join('');
+}
+function removerRecente(i){const rec=getRecentes();rec.splice(i,1);saveRecentes(rec);renderRecentes();}
+function limparRecentes(){saveRecentes([]);renderRecentes();}
+function preencherBusca(o,d){
+  document.getElementById('s-origem').value=o||'';
+  document.getElementById('s-destino').value=d||'';
+  document.getElementById('clear-origem').style.display=o?'block':'none';
+  document.getElementById('clear-destino').style.display=d?'block':'none';
+  buscar();
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
