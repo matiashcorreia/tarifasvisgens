@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin — Corridas & Viagens</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F0F1A;--bg2:#1A1A2E;--bg3:#252540;
+  --border:#2D2D50;--border2:#3A3A60;
+  --text:#F0F0FF;--text2:#A0A0C0;--text3:#606080;
+  --purple:#7C3AED;--purple-l:#9D5FF0;--purple-bg:#1E1040;
+  --green:#10B981;--green-bg:#0D2818;
+  --red:#EF4444;--red-bg:#2D0A0A;
+  --blue:#3B82F6;--blue-bg:#0A1A3D;
+  --amber:#F59E0B;--amber-bg:#2D1A00;
+  --white:#FFFFFF;
+  --r8:8px;--r12:12px;--r16:16px;--r20:20px;
+  --sh:0 4px 20px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 50% 0%,#1E1040 0%,var(--bg) 60%)}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r20);padding:40px 32px;width:100%;max-width:400px;box-shadow:var(--sh)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo div{font-size:44px;margin-bottom:10px}
+.login-logo h1{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
+.form-group{margin-bottom:16px}
+.form-group label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:7px}
+.form-group input{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r12);color:var(--text);outline:none;transition:border .2s}
+.form-group input:focus{border-color:var(--purple)}
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#5B21B6,var(--purple));color:#fff;border:none;border-radius:var(--r12);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:4px;transition:all .2s;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.45)}
+.login-err{color:var(--red);font-size:13px;text-align:center;margin-top:10px;font-weight:500;min-height:18px}
+
+/* LAYOUT ADMIN */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo h2{font-size:14px;font-weight:700;color:var(--text)}
+.sidebar-logo p{font-size:11px;color:var(--text3);margin-top:2px}
+.sidebar-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r8);border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--purple-bg);color:var(--purple-l);font-weight:600}
+.nav-btn .icon{font-size:17px;width:22px;text-align:center}
+.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border)}
+.btn-sair{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r8);border:1px solid var(--border2);background:none;color:var(--text3);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;width:100%;transition:all .15s}
+.btn-sair:hover{color:var(--red);border-color:var(--red)}
+
+.main{margin-left:240px;padding:28px 32px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.page-title{font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+
+/* CARDS STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r16);padding:20px}
+.stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-icon{width:40px;height:40px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:20px}
+.stat-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.stat-n{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.stat-l{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* TABELA GRUPOS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r16);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:700}
+.table{width:100%;border-collapse:collapse}
+.table th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.table td{padding:14px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:rgba(255,255,255,.02)}
+.grupo-color{width:14px;height:14px;border-radius:4px;display:inline-block;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.1)}
+.badge-ativo{background:var(--green-bg);color:var(--green);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.badge-inativo{background:var(--red-bg);color:var(--red);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.action-btns{display:flex;gap:6px}
+.btn-icon{width:32px;height:32px;border-radius:var(--r8);border:1px solid var(--border2);background:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-icon.edit:hover{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.btn-icon.del:hover{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.btn-icon.toggle:hover{background:var(--amber-bg);border-color:var(--amber)}
+
+/* BOTÕES */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r12);border:none;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,#5B21B6,var(--purple));color:#fff;box-shadow:0 3px 10px rgba(124,58,237,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(124,58,237,.4)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.btn-sm{padding:7px 12px;font-size:12px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r20);padding:28px;width:100%;max-width:520px;box-shadow:var(--sh);max-height:90vh;overflow-y:auto}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:20px;letter-spacing:-.3px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.color-preview{width:38px;height:38px;border-radius:var(--r8);border:2px solid var(--border);flex-shrink:0;transition:background .2s}
+.color-row{display:flex;align-items:center;gap:10px}
+.color-row input[type=text]{flex:1}
+.color-row input[type=color]{width:38px;height:38px;border:none;border-radius:var(--r8);cursor:pointer;background:none;padding:0}
+
+/* GRUPO CARD (visual) */
+.grupo-preview{width:100%;height:80px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-.3px;transition:all .3s}
+
+/* NOTIF */
+.notif{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--r12);font-size:13px;font-weight:600;z-index:500;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.notif.show{opacity:1;transform:translateY(0)}
+.notif.success{background:var(--green);color:#fff}
+.notif.error{background:var(--red);color:#fff}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem;color:var(--text3)}
+.empty .ico{font-size:40px;margin-bottom:10px}
+
+/* LOADING */
+.loading{text-align:center;padding:2rem;color:var(--text3);font-size:13px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LINK DO GRUPO */
+.link-chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text2);font-family:monospace}
+
+/* MOBILE SIDEBAR */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap}
+  .main{margin-left:0;padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page" class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div>🚗</div>
+      <h1>Super Admin</h1>
+      <p>Corridas & Viagens — Escada</p>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="sa-email" placeholder="admin@exemplo.com" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="sa-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button class="btn-login" onclick="login()">Entrar no painel</button>
+    <div class="login-err" id="sa-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🚗 Super Admin</h2>
+      <p id="admin-email-label">admin@email.com</p>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" onclick="showPage('grupos')" id="nav-grupos">
+        <span class="icon">👥</span> Grupos
+      </button>
+      <button class="nav-btn" onclick="showPage('visao')" id="nav-visao">
+        <span class="icon">📊</span> Visão Geral
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-sair" onclick="sair()">🚪 Sair</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PÁGINA: GRUPOS -->
+    <div class="page active" id="page-grupos">
+      <div class="page-title">Grupos de Motoristas</div>
+      <div class="page-sub">Gerencie os grupos, cores, logos e admins</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon" style="background:#1E1040">👥</div>
+            <span class="stat-badge" style="background:#1E1040;color:#9D5FF0">Grupos</span>
+          </div>
+          <div class="stat-n" id="total-grupos">0</div>
+          <div class="stat-l">grupos cadastrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon" style="background:#0D2818">📍</div>
+            <span class="stat-badge" style="background:#0D2818;color:#10B981">Rotas</span>
+          </div>
+          <div class="stat-n" id="total-bairros">0</div>
+          <div class="stat-l">rotas de bairro</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-icon" style="background:#0A1A3D">🛣️</div>
+            <span class="stat-badge" style="background:#0A1A3D;color:#3B82F6">Viagens</span>
+          </div>
+          <div class="stat-n" id="total-viagens">0</div>
+          <div class="stat-l">viagens longas</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Todos os grupos</div>
+          <button class="btn btn-primary" onclick="abrirModalGrupo(null)">➕ Novo grupo</button>
+        </div>
+        <div id="grupos-loading" class="loading"><div class="spinner"></div>Carregando...</div>
+        <table class="table" id="grupos-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Grupo</th>
+              <th>Link público</th>
+              <th>Rotas</th>
+              <th>Admin</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="grupos-tbody"></tbody>
+        </table>
+        <div id="grupos-empty" class="empty" style="display:none">
+          <div class="ico">📭</div>
+          <div>Nenhum grupo criado ainda</div>
+          <div style="margin-top:12px"><button class="btn btn-primary" onclick="abrirModalGrupo(null)">➕ Criar primeiro grupo</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PÁGINA: VISÃO GERAL -->
+    <div class="page" id="page-visao">
+      <div class="page-title">Visão Geral</div>
+      <div class="page-sub">Todas as rotas de todos os grupos</div>
+      <div id="visao-content" class="loading"><div class="spinner"></div>Carregando...</div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL NOVO/EDITAR GRUPO -->
+<div class="modal-bg" id="modal-grupo">
+  <div class="modal">
+    <h2 id="modal-grupo-title">Novo grupo</h2>
+    <input type="hidden" id="mg-id">
+
+    <!-- Preview visual -->
+    <div class="grupo-preview" id="mg-preview">🚗 Nome do Grupo</div>
+
+    <div class="form-group">
+      <label>Nome do grupo</label>
+      <input type="text" id="mg-nome" placeholder="Ex: Grupo Alfa" oninput="atualizarPreview()">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Slug (link)</label>
+        <input type="text" id="mg-slug" placeholder="ex: alfa" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')">
+      </div>
+      <div class="form-group">
+        <label>Emoji / ícone</label>
+        <input type="text" id="mg-emoji" placeholder="🚗" maxlength="4" oninput="atualizarPreview()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cor primária</label>
+        <div class="color-row">
+          <input type="color" id="mg-cor1-picker" value="#7C3AED" oninput="document.getElementById('mg-cor1').value=this.value;atualizarPreview()">
+          <input type="text" id="mg-cor1" value="#7C3AED" placeholder="#7C3AED" oninput="document.getElementById('mg-cor1-picker').value=this.value;atualizarPreview()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Cor secundária</label>
+        <div class="color-row">
+          <input type="color" id="mg-cor2-picker" value="#10B981" oninput="document.getElementById('mg-cor2').value=this.value;atualizarPreview()">
+          <input type="text" id="mg-cor2" value="#10B981" placeholder="#10B981" oninput="document.getElementById('mg-cor2-picker').value=this.value;atualizarPreview()">
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:18px;margin-top:4px">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px">
+        👤 Admin do grupo
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email do admin</label>
+          <input type="email" id="mg-email" placeholder="admin@grupo.com">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="mg-senha" placeholder="Mín. 6 caracteres">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:-8px">
+        ⚠️ Deixe em branco se for editar um grupo existente sem mudar o admin.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" id="mg-btn-salvar" onclick="salvarGrupo()">✅ Criar grupo</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<div class="notif" id="notif"></div>
+
+<script>
+const SUPABASE_URL = 'https://erfnxnjruqsqgkkfyiba.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZm54bmpydXFzcWdra2Z5aWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ5ODcsImV4cCI6MjA5NzMxMDk4N30.zT0ePGOmkwIVwSEGCbwCkxMKYww42mX0g6n0fGZOwAo';
+
+let _token = null;
+let _grupos = [];
+
+// ── HEADERS ──
+const hAnon = () => ({ 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' });
+const hAuth = () => ({ 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' });
+
+// ── NOTIF ──
+function notif(msg, tipo='success') {
+  const n = document.getElementById('notif');
+  n.textContent = msg; n.className = 'notif ' + tipo + ' show';
+  setTimeout(() => n.className = 'notif', 2800);
+}
+
+// ── LOGIN ──
+async function login() {
+  const email = document.getElementById('sa-email').value.trim();
+  const senha = document.getElementById('sa-senha').value;
+  const btn   = document.querySelector('.btn-login');
+  const err   = document.getElementById('sa-err');
+  if(!email||!senha){err.textContent='Preencha email e senha.';return}
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: senha})
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error_description||d.message||'Erro');
+    _token = d.access_token;
+
+    // Verificar se é super_admin
+    const pr = await fetch(`${SUPABASE_URL}/rest/v1/perfis?id=eq.${d.user.id}&select=role`, { headers: hAuth() });
+    const perfil = await pr.json();
+    if(!perfil.length || perfil[0].role !== 'super_admin') {
+      _token = null;
+      throw new Error('Acesso negado. Apenas super admins podem acessar este painel.');
+    }
+
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('admin-email-label').textContent = email;
+    carregarTudo();
+  } catch(e) {
+    err.textContent = e.message;
+  } finally {
+    btn.textContent = 'Entrar no painel'; btn.disabled = false;
+  }
+}
+
+async function sair() {
+  await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method:'POST', headers: hAuth() });
+  _token = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+// ── NAVEGAÇÃO ──
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='visao') carregarVisao();
+}
+
+// ── CARREGAR TUDO ──
+async function carregarTudo() {
+  await carregarGrupos();
+  await carregarStats();
+}
+
+async function carregarGrupos() {
+  document.getElementById('grupos-loading').style.display = 'block';
+  document.getElementById('grupos-table').style.display  = 'none';
+  document.getElementById('grupos-empty').style.display  = 'none';
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/grupos?select=*&order=criado_em.asc`, { headers: hAuth() });
+    _grupos = await r.json();
+    renderGrupos();
+  } catch(e) { notif('Erro ao carregar grupos','error'); }
+  finally { document.getElementById('grupos-loading').style.display = 'none'; }
+}
+
+async function carregarStats() {
+  try {
+    const [bg, bv] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/bairros?select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+      fetch(`${SUPABASE_URL}/rest/v1/viagens?select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+    ]);
+    const tb = bg.headers.get('content-range')?.split('/')[1] || '0';
+    const tv = bv.headers.get('content-range')?.split('/')[1] || '0';
+    document.getElementById('total-grupos').textContent  = _grupos.length;
+    document.getElementById('total-bairros').textContent = tb;
+    document.getElementById('total-viagens').textContent = tv;
+  } catch {}
+}
+
+// ── RENDER GRUPOS ──
+function renderGrupos() {
+  const tbody = document.getElementById('grupos-tbody');
+  const table = document.getElementById('grupos-table');
+  const empty = document.getElementById('grupos-empty');
+  if(!_grupos.length) { empty.style.display='block'; return; }
+  table.style.display = 'table';
+  tbody.innerHTML = _grupos.map(g => `
+    <tr>
+      <td>
+        <span class="grupo-color" style="background:${g.cor_primaria}"></span>
+        <strong>${g.logo_emoji||'🚗'} ${g.nome}</strong>
+      </td>
+      <td><span class="link-chip">🔗 /${g.slug}</span></td>
+      <td style="color:var(--text2);font-size:12px" id="rotas-${g.id}">—</td>
+      <td style="color:var(--text3);font-size:12px" id="admin-${g.id}">—</td>
+      <td>${g.ativo
+        ? '<span class="badge-ativo">● Ativo</span>'
+        : '<span class="badge-inativo">● Inativo</span>'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-icon edit" onclick="abrirModalGrupo(${g.id})" title="Editar">✏️</button>
+          <button class="btn-icon toggle" onclick="toggleGrupo(${g.id},${g.ativo})" title="${g.ativo?'Desativar':'Ativar'}">${g.ativo?'⏸️':'▶️'}</button>
+          <button class="btn-icon del" onclick="excluirGrupo(${g.id},'${g.nome}')" title="Excluir">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  // Carregar contagem de rotas por grupo
+  _grupos.forEach(g => carregarRotasGrupo(g.id));
+}
+
+async function carregarRotasGrupo(gid) {
+  try {
+    const [rb, rv] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/bairros?grupo_id=eq.${gid}&select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+      fetch(`${SUPABASE_URL}/rest/v1/viagens?grupo_id=eq.${gid}&select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+    ]);
+    const tb = rb.headers.get('content-range')?.split('/')[1] || '0';
+    const tv = rv.headers.get('content-range')?.split('/')[1] || '0';
+    const el = document.getElementById(`rotas-${gid}`);
+    if(el) el.innerHTML = `<span style="color:var(--green)">${tb}</span> bairros · <span style="color:var(--blue)">${tv}</span> viagens`;
+  } catch {}
+}
+
+// ── MODAL GRUPO ──
+let _editId = null;
+function abrirModalGrupo(id) {
+  _editId = id;
+  const g = id ? _grupos.find(x => x.id===id) : null;
+  document.getElementById('modal-grupo-title').textContent = g ? 'Editar grupo' : 'Novo grupo';
+  document.getElementById('mg-btn-salvar').textContent = g ? '💾 Salvar' : '✅ Criar grupo';
+  document.getElementById('mg-id').value    = id || '';
+  document.getElementById('mg-nome').value  = g?.nome || '';
+  document.getElementById('mg-slug').value  = g?.slug || '';
+  document.getElementById('mg-emoji').value = g?.logo_emoji || '🚗';
+  document.getElementById('mg-cor1').value  = g?.cor_primaria || '#7C3AED';
+  document.getElementById('mg-cor2').value  = g?.cor_secundaria || '#10B981';
+  document.getElementById('mg-cor1-picker').value = g?.cor_primaria || '#7C3AED';
+  document.getElementById('mg-cor2-picker').value = g?.cor_secundaria || '#10B981';
+  document.getElementById('mg-email').value = '';
+  document.getElementById('mg-senha').value = '';
+  atualizarPreview();
+  document.getElementById('modal-grupo').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modal-grupo').classList.remove('open');
+}
+document.getElementById('modal-grupo').addEventListener('click', e => { if(e.target===e.currentTarget) fecharModal(); });
+
+function atualizarPreview() {
+  const nome  = document.getElementById('mg-nome').value || 'Nome do Grupo';
+  const emoji = document.getElementById('mg-emoji').value || '🚗';
+  const cor1  = document.getElementById('mg-cor1').value || '#7C3AED';
+  const cor2  = document.getElementById('mg-cor2').value || '#10B981';
+  const prev  = document.getElementById('mg-preview');
+  prev.style.background = `linear-gradient(135deg, ${cor1}, ${cor2})`;
+  prev.textContent = `${emoji} ${nome}`;
+}
+
+async function salvarGrupo() {
+  const id    = document.getElementById('mg-id').value;
+  const nome  = document.getElementById('mg-nome').value.trim();
+  const slug  = document.getElementById('mg-slug').value.trim();
+  const emoji = document.getElementById('mg-emoji').value.trim() || '🚗';
+  const cor1  = document.getElementById('mg-cor1').value.trim();
+  const cor2  = document.getElementById('mg-cor2').value.trim();
+  const email = document.getElementById('mg-email').value.trim();
+  const senha = document.getElementById('mg-senha').value;
+
+  if(!nome||!slug) { notif('Preencha nome e slug','error'); return; }
+
+  const btn = document.getElementById('mg-btn-salvar');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try {
+    let grupo_id = id ? parseInt(id) : null;
+
+    if(!id) {
+      // 1. Criar grupo
+      const rg = await fetch(`${SUPABASE_URL}/rest/v1/grupos`, {
+        method:'POST', headers: hAuth(),
+        body: JSON.stringify({ nome, slug, logo_emoji:emoji, cor_primaria:cor1, cor_secundaria:cor2, ativo:true })
+      });
+      if(!rg.ok) throw new Error('Erro ao criar grupo: ' + await rg.text());
+      const [ng] = await rg.json();
+      grupo_id = ng.id;
+
+      // 2. Copiar tabela padrão
+      const rc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/copiar_tabela_padrao`, {
+        method:'POST', headers: hAuth(),
+        body: JSON.stringify({ p_grupo_id: grupo_id })
+      });
+      if(!rc.ok) throw new Error('Erro ao copiar tabela padrão: ' + await rc.text());
+
+      notif(`✅ Grupo "${nome}" criado com tabela padrão!`);
+    } else {
+      // Editar grupo existente
+      const rg = await fetch(`${SUPABASE_URL}/rest/v1/grupos?id=eq.${id}`, {
+        method:'PATCH', headers: hAuth(),
+        body: JSON.stringify({ nome, slug, logo_emoji:emoji, cor_primaria:cor1, cor_secundaria:cor2 })
+      });
+      if(!rg.ok) throw new Error('Erro ao editar grupo');
+      notif('✅ Grupo atualizado!');
+    }
+
+    // 3. Criar usuário admin (se email foi informado)
+    if(email && senha) {
+      // Criar usuário via Admin API
+      const ru = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+        method:'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: senha, email_confirm: true })
+      });
+      if(!ru.ok) {
+        const err = await ru.json();
+        throw new Error('Erro ao criar admin: ' + (err.message||JSON.stringify(err)));
+      }
+      const nu = await ru.json();
+
+      // Criar perfil ligando ao grupo
+      const rp = await fetch(`${SUPABASE_URL}/rest/v1/perfis`, {
+        method:'POST', headers: hAuth(),
+        body: JSON.stringify({ id: nu.id, grupo_id, role:'admin_grupo', nome: `Admin ${nome}` })
+      });
+      if(!rp.ok) throw new Error('Erro ao criar perfil do admin');
+      notif(`✅ Admin "${email}" criado para o grupo!`);
+    }
+
+    fecharModal();
+    await carregarTudo();
+  } catch(e) {
+    notif(e.message, 'error');
+  } finally {
+    btn.textContent = id ? '💾 Salvar' : '✅ Criar grupo';
+    btn.disabled = false;
+  }
+}
+
+async function toggleGrupo(id, ativo) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/grupos?id=eq.${id}`, {
+      method:'PATCH', headers: hAuth(),
+      body: JSON.stringify({ ativo: !ativo })
+    });
+    notif(ativo ? '⏸️ Grupo desativado' : '▶️ Grupo ativado');
+    await carregarGrupos();
+  } catch { notif('Erro','error'); }
+}
+
+async function excluirGrupo(id, nome) {
+  if(!confirm(`Excluir o grupo "${nome}"?\n\nIsso vai apagar TODAS as rotas e o admin deste grupo.`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/grupos?id=eq.${id}`, { method:'DELETE', headers: hAuth() });
+    notif(`🗑️ Grupo "${nome}" excluído`);
+    await carregarTudo();
+  } catch { notif('Erro ao excluir','error'); }
+}
+
+// ── VISÃO GERAL ──
+async function carregarVisao() {
+  const el = document.getElementById('visao-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+  try {
+    const grupos = _grupos.filter(g => g.ativo);
+    if(!grupos.length) { el.innerHTML = '<div class="empty"><div class="ico">📭</div>Nenhum grupo ativo</div>'; return; }
+
+    let html = '';
+    for(const g of grupos) {
+      const [rb, rv] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/bairros?grupo_id=eq.${g.id}&select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+        fetch(`${SUPABASE_URL}/rest/v1/viagens?grupo_id=eq.${g.id}&select=count`, { headers: { ...hAuth(), 'Prefer':'count=exact' } }),
+      ]);
+      const tb = rb.headers.get('content-range')?.split('/')[1] || '0';
+      const tv = rv.headers.get('content-range')?.split('/')[1] || '0';
+      html += `
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r16);margin-bottom:14px;overflow:hidden">
+          <div style="background:linear-gradient(135deg,${g.cor_primaria},${g.cor_secundaria});padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px;color:#fff">
+              <span style="font-size:24px">${g.logo_emoji||'🚗'}</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">${g.nome}</div>
+                <div style="font-size:11px;opacity:.8">/${g.slug}</div>
+              </div>
+            </div>
+            <div style="color:#fff;text-align:right;font-size:12px;opacity:.9">
+              <div><strong>${tb}</strong> rotas bairro</div>
+              <div><strong>${tv}</strong> viagens</div>
+            </div>
+          </div>
+        </div>`;
+    }
+    el.innerHTML = html;
+  } catch(e) { el.innerHTML = '<div class="empty">Erro ao carregar</div>'; }
+}
+</script>
+</body>
+</html>
